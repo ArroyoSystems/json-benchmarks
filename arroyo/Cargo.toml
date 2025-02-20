@@ -1,0 +1,19 @@
+[package]
+name = "arroyo"
+version = "0.1.0"
+edition = "2021"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "json_benchmark"
+harness = false
+
+[profile.release]
+debug = true
+
+
+[dependencies]
+arrow = { version = "54.2.0" }
+arrow-json = { version = "54.2.0" }
