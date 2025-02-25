@@ -124,7 +124,7 @@ fn run_json_benchmark(c: &mut Criterion, config: BenchmarkConfig) {
     ).unwrap();
 
     let mut reader = ReaderBuilder::new(config.schema)
-        //.with_limit_to_batch_size(true)
+        .with_limit_to_batch_size(true)
         .with_strict_mode(false)
         //.with_allow_bad_data(false)
         .with_batch_size(config.batch_size)
@@ -133,9 +133,15 @@ fn run_json_benchmark(c: &mut Criterion, config: BenchmarkConfig) {
 
     c.bench_function(config.name, |b| {
         b.iter_with_large_drop(|| {
-            reader.decode(file.as_bytes()).unwrap();
-            let record_batch = reader.flush().expect(config.name).unwrap();
-            assert_eq!(record_batch.num_rows(), config.batch_size);
+            let mut bytes = file.as_bytes();
+            while !bytes.is_empty() {
+                let next = reader.decode(bytes).unwrap();
+                reader.flush().unwrap();
+                bytes = &bytes[next..];
+            }
+            
+//            let record_batch = reader.flush().expect(config.name).unwrap();
+            //assert_eq!(record_batch.num_rows(), config.batch_size);
         })
     });
 }
@@ -146,60 +152,60 @@ fn json_benchmarks(c: &mut Criterion) {
         name: "logs_json",
         file_path: "../data/logs/logs.json",
         schema: log_schema(),
-        batch_size: 1024,
+        batch_size: 256,
     });
 
-    run_json_benchmark(c, BenchmarkConfig {
-        name: "logs_pretty_json",
-        file_path: "../data/logs/logs_pretty.json",
-        schema: log_schema(),
-        batch_size: 1024,
-    });
+    // run_json_benchmark(c, BenchmarkConfig {
+    //     name: "logs_pretty_json",
+    //     file_path: "../data/logs/logs_pretty.json",
+    //     schema: log_schema(),
+    //     batch_size: 1024,
+    // });
 
     // Nexmark general benchmarks
     run_json_benchmark(c, BenchmarkConfig {
         name: "nexmark_json",
         file_path: "../data/nexmark/nexmark.json",
         schema: nexmark_schema(),
-        batch_size: 1024,
+        batch_size: 256,
     });
 
-    run_json_benchmark(c, BenchmarkConfig {
-        name: "nexmark_pretty_json",
-        file_path: "../data/nexmark/nexmark_pretty.json",
-        schema: nexmark_schema(),
-        batch_size: 1024,
-    });
+    // run_json_benchmark(c, BenchmarkConfig {
+    //     name: "nexmark_pretty_json",
+    //     file_path: "../data/nexmark/nexmark_pretty.json",
+    //     schema: nexmark_schema(),
+    //     batch_size: 1024,
+    // });
 
     // Nexmark bids benchmarks
     run_json_benchmark(c, BenchmarkConfig {
         name: "nexmark_bids_json",
         file_path: "../data/nexmark/bids.json",
         schema: bid_schema(),
-        batch_size: 1024,
+        batch_size: 256,
     });
 
-    run_json_benchmark(c, BenchmarkConfig {
-        name: "nexmark_bids_pretty_json",
-        file_path: "../data/nexmark/bids_pretty.json",
-        schema: bid_schema(),
-        batch_size: 1024,
-    });
+    // run_json_benchmark(c, BenchmarkConfig {
+    //     name: "nexmark_bids_pretty_json",
+    //     file_path: "../data/nexmark/bids_pretty.json",
+    //     schema: bid_schema(),
+    //     batch_size: 1024,
+    // });
 
     // Tweets benchmarks
     run_json_benchmark(c, BenchmarkConfig {
         name: "tweets_json",
         file_path: "../data/tweets/tweets.json",
         schema: tweet_schema(),
-        batch_size: 100,
+        batch_size: 256,
     });
 
-    run_json_benchmark(c, BenchmarkConfig {
-        name: "tweets_pretty_json",
-        file_path: "../data/tweets/tweets_pretty.json",
-        schema: tweet_schema(),
-        batch_size: 100,
-    });
+    // run_json_benchmark(c, BenchmarkConfig {
+    //     name: "tweets_pretty_json",
+    //     file_path: "../data/tweets/tweets_pretty.json",
+    //     schema: tweet_schema(),
+    //     batch_size: 100,
+    // });
 }
 
 criterion_group!(benches, json_benchmarks);

@@ -15,5 +15,6 @@ debug = true
 
 
 [dependencies]
-arrow = { version = "54.2.0" }
-arrow-json = { version = "54.2.0" }
+arrow = { version = "53.2.0" }
+arrow-json = {git = 'https://github.com/ArroyoSystems/arrow-rs', branch = '53.2.0/json'}
+
